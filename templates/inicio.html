@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Ejemplo WS</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+            <div class="mr-auto mt-2 mt-lg-0"></div>
+            <i class="fa fa-bell fa-2x fa-border icon-grey badge" aria-hidden="true">
+                <span id="cuenta">0</span>
+            </i>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Personas</h1>
+        <a href="formulario" class="btn btn-primary">Nueva Persona</a>
+
+        <div class="mt-4">
+            <h2>Listado</h2>
+
+            <div id="listado-empleados" class="d-flex flex-wrap align-content-center">
+
+                {% if not empleados %}    
+                    <div class="jumbotron" id="jumboId">
+                        <div class="container">
+                        <h1 class="display-4">No se ha encontrado ningún dato</h1>
+                        <p class="lead">
+                            <a href="/formulario">Agrega una nueva persona</a>
+                        </p>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% for empleado in empleados %}
+                    <div class="card mr-4 mb-2" style="width: 18rem;">
+                        <div class="card-body elevation-1" style="background-color: chocolate;color:white">
+                            <h5 class="card-title">{{ empleado.nombre }}</h5>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">{{ empleado.email }}</li>
+                        </ul>
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        var wsurl = "http://" + document.domain + ":" + location.port
+        
+        var notificaciones = 0
+        var socket = io.connect(wsurl);
+
+        socket.on('connect', function() {
+            console.log('WS SOCKET CONECTADO, NO SE EMITE NINGUN DATO AL SERVIDOR')
+        });
+        socket.on('nuevo_empleado',function(mensaje) {
+            console.log('ACA SE RECIBE UN NUEVO EMPLEADO DESDE EL BACKEND')
+            
+            var dato = JSON.parse(mensaje) // Mensaje Recibido se pasa a JSON
+
+            // Desapareciendo el jumbotron
+            var jumbo = document.getElementById('jumboId')
+            if(jumbo){
+                jumbo.style="display:none;"
+            }
+
+            // Ahora se coloca una nueva card
+            var card = document.createElement('div')
+            card.classList.add('card')
+            card.classList.add('mr-4')
+            card.classList.add('mb-2')
+            card.style.width = '18rem'
+            // Seccion del nombre
+            var divNombre = document.createElement('div')
+            divNombre.classList.add('card-body')
+            divNombre.style.backgroundColor = 'chocolate'
+            divNombre.style.color = 'white'
+            var h5 = document.createElement('h5')
+            h5.classList.add('card-title')
+            var nombre = document.createTextNode(dato.nombre) // Nombre del empleado
+            h5.appendChild(nombre)
+            divNombre.appendChild(h5)
+
+            // Seccion del apellido
+            var ulEmail = document.createElement('ul')
+            ulEmail.classList.add('list-group')
+            ulEmail.classList.add('list-group-flush')
+            var li = document.createElement('li')
+            li.classList.add('list-group-item')
+            var email = document.createTextNode(dato.email)
+            li.appendChild(email)
+            ulEmail.appendChild(li)
+
+            // Wrapping todo
+            card.appendChild(divNombre)
+            card.appendChild(ulEmail)
+
+            var listado = document.getElementById('listado-empleados')
+            listado.appendChild(card)
+
+            // sumando las notificaciones
+            notificaciones++
+            document.getElementById('cuenta').innerHTML = notificaciones
+        })
+    </script>
+
+</body>
+</html>
